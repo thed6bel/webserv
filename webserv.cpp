@@ -10,7 +10,7 @@
 #include <netinet/in.h>
 
 #define PORT 80
-#define BUFFER_SIZE 1024
+#define BUFFER_SIZE 2048
 
 std::string readFromFile(const std::string& filename) {
     std::ifstream file(filename.c_str());
@@ -87,40 +87,46 @@ int main() {
     }
 
     // Lecture du contenu du fichier
-    std::ifstream file("." + requestedPath, std::ios::binary);
-    if (file.is_open()) {
-        std::ostringstream oss;
-        oss << file.rdbuf();
+std::ifstream file("." + requestedPath, std::ios::binary);
+if (file.is_open()) {
+    std::ostringstream oss;
+    oss << file.rdbuf();
 
-        // Envoi de la réponse au client
-        std::string response = "HTTP/1.1 200 OK\r\n";
-        
-        // Détermination du type de contenu en fonction de l'extension du fichier
-        if (requestedPath.find(".html") != std::string::npos) {
-            response += "Content-Type: text/html\r\n";
-        } else if (requestedPath.find(".jpg") != std::string::npos || requestedPath.find(".jpeg") != std::string::npos) {
-            response += "Content-Type: image/jpeg\r\n";
-        } else if (requestedPath.find(".png") != std::string::npos) {
-            response += "Content-Type: image/png\r\n";
-        } else if (requestedPath.find(".webp") != std::string::npos) {
-            response += "Content-Type: image/webp\r\n";
-        } else {
-            response += "Content-Type: application/octet-stream\r\n";
-        }
+    // Envoi de la réponse au client
+    std::string response = "HTTP/1.1 200 OK\r\n";
 
-        response += "Content-Length: " + std::to_string(oss.str().size()) + "\r\n\r\n" + oss.str();
-
-        ssize_t bytesSent = send(new_socket, response.c_str(), response.size(), 0);
-        if (bytesSent == -1) {
-            reportError("send failed");
-        } else {
-            std::cout << "Réponse envoyée\n";
-        }
+    // Détermination du type de contenu en fonction de l'extension du fichier
+    if (requestedPath.find(".html") != std::string::npos) {
+        response += "Content-Type: text/html\r\n";
+    } else if (requestedPath.find(".jpg") != std::string::npos || requestedPath.find(".jpeg") != std::string::npos) {
+        response += "Content-Type: image/jpeg\r\n";
+    } else if (requestedPath.find(".png") != std::string::npos) {
+        response += "Content-Type: image/png\r\n";
+    } else if (requestedPath.find(".webp") != std::string::npos) {
+        response += "Content-Type: image/webp\r\n";
+    } else if (requestedPath.find(".ico") != std::string::npos) {
+        response += "Content-Type: image/x-icon\r\n";
+    } else if (requestedPath.find(".js") != std::string::npos) {
+        response += "Content-Type: application/javascript\r\n";
+    } else if (requestedPath.find(".css") != std::string::npos) {
+        response += "Content-Type: text/css\r\n";
     } else {
-        // Gestion du cas où le fichier n'est pas trouvé
-        std::string notFoundResponse = "HTTP/1.1 404 Not Found\r\n\r\nFile not found!";
-        send(new_socket, notFoundResponse.c_str(), notFoundResponse.size(), 0);
+        response += "Content-Type: application/octet-stream\r\n";
     }
+
+    response += "Content-Length: " + std::to_string(oss.str().size()) + "\r\n\r\n" + oss.str();
+
+    ssize_t bytesSent = send(new_socket, response.c_str(), response.size(), 0);
+    if (bytesSent == -1) {
+        reportError("send failed");
+    } else {
+        std::cout << "Réponse envoyée\n";
+    }
+} else {
+    // Gestion du cas où le fichier n'est pas trouvé
+    std::string notFoundResponse = "HTTP/1.1 404 Not Found\r\n\r\nFile not found!";
+    send(new_socket, notFoundResponse.c_str(), notFoundResponse.size(), 0);
+}
 
     // Fermeture du socket client
     close(new_socket);
