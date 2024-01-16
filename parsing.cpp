@@ -3,31 +3,32 @@
 #include <sstream>
 #include <vector>
 
-// Structure pour représenter une location
-struct Location {
+struct LocationConfig {
     std::string path;
-    std::string allow_methods;
+    std::string allowMethods;
     std::string autoindex;
+    std::string index;  // Déplacer l'index ici
 };
 
-// Structure pour représenter un serveur
-struct Server {
-    int listen_port;
-    std::string server_name;
+struct ServerConfig {
+    int listenPort;
+    std::string serverName;
     std::string host;
     std::string root;
     std::string index;
-    std::string error_page;
-    std::vector<Location> locations;
+    int errorPage;
+    std::vector<LocationConfig> locations;
 };
 
-// Fonction de parsing
-void parseConfig(const std::string &filename, std::vector<Server> &servers) {
-    std::ifstream file(filename);
-    std::string line;
+struct Config {
+    std::vector<ServerConfig> servers;
+};
 
-    Server currentServer;
-    Location currentLocation;
+void parseConfig(const std::string &configFile, Config &config) {
+    std::ifstream file(configFile);
+    std::string line;
+    ServerConfig currentServer;
+    LocationConfig currentLocation;
 
     while (std::getline(file, line)) {
         std::istringstream iss(line);
@@ -35,15 +36,15 @@ void parseConfig(const std::string &filename, std::vector<Server> &servers) {
         iss >> keyword;
 
         if (keyword == "server") {
-            if (!currentServer.server_name.empty()) {
-                servers.push_back(currentServer);
+            if (currentServer.listenPort != 0) {
+                config.servers.push_back(currentServer);
             }
-            currentServer = Server();
-            currentLocation = Location();
+            currentServer = ServerConfig();
+            iss >> keyword; // Pour consommer la "{"
         } else if (keyword == "listen") {
-            iss >> currentServer.listen_port;
+            iss >> currentServer.listenPort;
         } else if (keyword == "server_name") {
-            iss >> currentServer.server_name;
+            iss >> currentServer.serverName;
         } else if (keyword == "host") {
             iss >> currentServer.host;
         } else if (keyword == "root") {
@@ -51,50 +52,53 @@ void parseConfig(const std::string &filename, std::vector<Server> &servers) {
         } else if (keyword == "index") {
             iss >> currentServer.index;
         } else if (keyword == "error_page") {
-            iss >> currentServer.error_page;
+            iss >> currentServer.errorPage;
         } else if (keyword == "location") {
+            currentLocation = LocationConfig(); // Réinitialisation de currentLocation
             iss >> currentLocation.path;
+            iss >> keyword; // Pour consommer la "{"
         } else if (keyword == "allow_methods") {
-            std::string methods;
-            std::getline(iss >> std::ws, methods);
-            currentLocation.allow_methods = methods;
+            std::getline(iss >> std::ws, currentLocation.allowMethods);
         } else if (keyword == "autoindex") {
             iss >> currentLocation.autoindex;
+        } else if (keyword == "index") {
+            iss >> currentLocation.index;
+        } else if (keyword == "}") {
             currentServer.locations.push_back(currentLocation);
-}
+        }
     }
 
-    if (!currentServer.server_name.empty()) {
-        servers.push_back(currentServer);
+    if (currentServer.listenPort != 0) {
+        config.servers.push_back(currentServer);
     }
 }
 
 int main(int argc, char *argv[]) {
-    std::vector<Server> servers;
     if (argc != 2) {
         std::cerr << "Usage: " << argv[0] << " <config_file>" << std::endl;
         return EXIT_FAILURE;
     }
 
-    // std::string configFile = argv[1];
-    parseConfig(argv[1], servers);
+    std::string configFile = argv[1];
+    Config servers;
+    parseConfig(configFile, servers);
 
-    for (const auto &server : servers) {
-        std::cout << "Server: Listen Port - " << server.listen_port << std::endl
-                  << "Server Name - " << server.server_name << std::endl
-                  << "Host - " << server.host << std::endl
-                  << "Root - " << server.root << std::endl
-                  << "Index - " << server.index << std::endl
-                  << "Error Page - " << server.error_page
-                  << std::endl;
+    // Affichage des résultats
+    for (const auto &server : servers.servers) {
+        std::cout << "Server: Listen Port - " << server.listenPort << std::endl;
+        std::cout << "Server Name - " << server.serverName << std::endl;
+        std::cout << "Host - " << server.host << std::endl;
+        std::cout << "Root - " << server.root << std::endl;
+        std::cout << "Index - " << server.index << std::endl;
+        std::cout << "Error Page - " << server.errorPage << std::endl;
 
         for (const auto &location : server.locations) {
-            std::cout << "  Location: Path - " << location.path << std::endl
-                      << "  Allow Methods - " << location.allow_methods << std::endl
-                      << "  Autoindex - " << location.autoindex
-                      << std::endl;
+            std::cout << "  Location: Path - " << location.path << std::endl;
+            std::cout << "  Allow Methods - " << location.allowMethods << std::endl;
+            std::cout << "  Autoindex - " << location.autoindex << std::endl;
+            std::cout << "  Index - " << location.index << std::endl;
         }
     }
 
-    return 0;
+    return EXIT_SUCCESS;
 }

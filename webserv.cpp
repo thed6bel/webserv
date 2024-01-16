@@ -54,8 +54,7 @@ std::string getContentType(const std::string &filename)
         return "application/octet-stream";
 }
 
-int main()
-{
+int main(int argc, char *argv[]) {
     int server_fd, new_socket;
     struct sockaddr_in address;
     socklen_t addrlen = sizeof(address);
