@@ -2,103 +2,139 @@
 #include <fstream>
 #include <sstream>
 #include <vector>
+#include <map>
 
 struct LocationConfig {
-    std::string path;
-    std::string allowMethods;
+    std::vector<std::string> allow_methods;
     std::string autoindex;
-    std::string index;  // Déplacer l'index ici
+    std::string index;
 };
 
 struct ServerConfig {
-    int listenPort;
-    std::string serverName;
+    int listen_port;
+    std::string server_name;
     std::string host;
     std::string root;
-    std::string index;
-    int errorPage;
-    std::vector<LocationConfig> locations;
+    std::string global_index;
+    std::map<int, std::string> error_pages;
+    std::map<std::string, LocationConfig> location;
 };
 
-struct Config {
-    std::vector<ServerConfig> servers;
-};
+// Fonction pour afficher la configuration du serveur
+void printServerConfig(const ServerConfig& config) {
+    std::cout << "Listen Port: " << config.listen_port << std::endl;
+    std::cout << "Server Name: " << config.server_name << std::endl;
+    std::cout << "Host: " << config.host << std::endl;
+    std::cout << "Root: " << config.root << std::endl;
+    std::cout << "Index: " << (config.global_index.empty() ? "Not defined" : config.global_index) << std::endl;
 
-void parseConfig(const std::string &configFile, Config &config) {
-    std::ifstream file(configFile);
-    std::string line;
-    ServerConfig currentServer;
-    LocationConfig currentLocation;
-
-    while (std::getline(file, line)) {
-        std::istringstream iss(line);
-        std::string keyword;
-        iss >> keyword;
-
-        if (keyword == "server") {
-            if (currentServer.listenPort != 0) {
-                config.servers.push_back(currentServer);
-            }
-            currentServer = ServerConfig();
-            iss >> keyword; // Pour consommer la "{"
-        } else if (keyword == "listen") {
-            iss >> currentServer.listenPort;
-        } else if (keyword == "server_name") {
-            iss >> currentServer.serverName;
-        } else if (keyword == "host") {
-            iss >> currentServer.host;
-        } else if (keyword == "root") {
-            iss >> currentServer.root;
-        } else if (keyword == "index") {
-            iss >> currentServer.index;
-        } else if (keyword == "error_page") {
-            iss >> currentServer.errorPage;
-        } else if (keyword == "location") {
-            currentLocation = LocationConfig(); // Réinitialisation de currentLocation
-            iss >> currentLocation.path;
-            iss >> keyword; // Pour consommer la "{"
-        } else if (keyword == "allow_methods") {
-            std::getline(iss >> std::ws, currentLocation.allowMethods);
-        } else if (keyword == "autoindex") {
-            iss >> currentLocation.autoindex;
-        } else if (keyword == "index") {
-            iss >> currentLocation.index;
-        } else if (keyword == "}") {
-            currentServer.locations.push_back(currentLocation);
-        }
+    std::cout << "Error Pages:" << std::endl;
+    for (const auto& errorPage : config.error_pages) {
+        std::cout << "  Error Page: " << errorPage.first << " : " << errorPage.second << std::endl;
     }
 
-    if (currentServer.listenPort != 0) {
-        config.servers.push_back(currentServer);
+    std::cout << "Location Configurations:" << std::endl;
+    for (const auto& loc : config.location) {
+        std::cout << "  " << loc.first << ": ";
+        const LocationConfig& locConfig = loc.second;
+        std::cout << "allow_methods: ";
+        for (const auto& method : locConfig.allow_methods) {
+            std::cout << method << " ";
+        }
+        std::cout << "autoindex " << locConfig.autoindex << " ";
+        std::cout << "index " << (locConfig.index.empty() ? "Not defined" : locConfig.index) << std::endl;
     }
 }
 
-int main(int argc, char *argv[]) {
-    if (argc != 2) {
-        std::cerr << "Usage: " << argv[0] << " <config_file>" << std::endl;
-        return EXIT_FAILURE;
+// Fonction pour effectuer le parsing du fichier de configuration
+bool parseConfigFile(const std::string& filename, std::vector<ServerConfig>& serverConfigs) {
+    std::ifstream file(filename);
+    if (!file.is_open()) {
+        std::cerr << "Erreur lors de l'ouverture du fichier de configuration." << std::endl;
+        return false;
     }
 
-    std::string configFile = argv[1];
-    Config servers;
-    parseConfig(configFile, servers);
+    std::string line;
+    std::string currentLocation;
+    bool globalIndexSet = false;
 
-    // Affichage des résultats
-    for (const auto &server : servers.servers) {
-        std::cout << "Server: Listen Port - " << server.listenPort << std::endl;
-        std::cout << "Server Name - " << server.serverName << std::endl;
-        std::cout << "Host - " << server.host << std::endl;
-        std::cout << "Root - " << server.root << std::endl;
-        std::cout << "Index - " << server.index << std::endl;
-        std::cout << "Error Page - " << server.errorPage << std::endl;
+    while (std::getline(file, line)) {
+        // Supprimer les espaces en début et fin de la ligne
+        line.erase(line.find_last_not_of(" \t\n\r\f\v") + 1);
+        line.erase(0, line.find_first_not_of(" \t\n\r\f\v"));
 
-        for (const auto &location : server.locations) {
-            std::cout << "  Location: Path - " << location.path << std::endl;
-            std::cout << "  Allow Methods - " << location.allowMethods << std::endl;
-            std::cout << "  Autoindex - " << location.autoindex << std::endl;
-            std::cout << "  Index - " << location.index << std::endl;
+        // Supprimer le point-virgule en fin de ligne, s'il y en a un
+        if (!line.empty() && line.back() == ';') {
+            line.pop_back();
+        }
+
+        std::istringstream iss(line);
+        std::string key, value;
+        iss >> key;
+
+        if (key == "server") {
+            // Nouvelle configuration de serveur détectée
+            serverConfigs.emplace_back();  // Ajouter une nouvelle configuration de serveur
+            globalIndexSet = false;  // Réinitialiser l'indicateur d'index global
+            continue;
+        } else if (serverConfigs.empty()) {
+            // Ignorer les lignes en dehors des blocs "server"
+            continue;
+        }
+
+        ServerConfig& currentServer = serverConfigs.back();
+
+        if (key == "listen") {
+            iss >> currentServer.listen_port;
+        } else if (key == "server_name") {
+            iss >> currentServer.server_name;
+        } else if (key == "host") {
+            iss >> currentServer.host;
+            if (!currentServer.host.empty() && currentServer.host.back() == '.') {
+                currentServer.host.pop_back();
+            }
+        } else if (key == "root") {
+            iss >> currentServer.root;
+        } else if (key == "index" && !globalIndexSet) {
+            iss >> currentServer.global_index;
+            globalIndexSet = true;
+        } else if (key == "error_page") {
+            int error_code;
+            iss >> error_code >> value;
+            currentServer.error_pages[error_code] = value;
+        } else if (key == "location") {
+            std::getline(iss, currentLocation, '{');
+            currentLocation = currentLocation.substr(0, currentLocation.find_last_not_of(" \t\n\r\f\v") + 1);
+            currentLocation.erase(0, currentLocation.find_first_not_of(" \t\n\r\f\v"));
+            continue;
+        } else if (key == "allow_methods" && !currentLocation.empty()) {
+            while (iss >> value) {
+                currentServer.location[currentLocation].allow_methods.push_back(value);
+            }
+        } else if (key == "autoindex" && !currentLocation.empty()) {
+            iss >> currentServer.location[currentLocation].autoindex;
+        } else if (key == "index" && !currentLocation.empty()) {
+            iss >> currentServer.location[currentLocation].index;
         }
     }
 
-    return EXIT_SUCCESS;
+    return true;
+}
+
+int main(int argc, char* argv[]) {
+    if (argc != 2) {
+        std::cerr << "Usage: " << argv[0] << " <config_file>" << std::endl;
+        return 1;
+    }
+
+    std::vector<ServerConfig> serverConfigs;
+    if (parseConfigFile(argv[1], serverConfigs)) {
+        for (const auto& config : serverConfigs) {
+            std::cout << "==== Server Configuration ====" << std::endl;
+            printServerConfig(config);
+            std::cout << std::endl;
+        }
+    }
+
+    return 0;
 }
