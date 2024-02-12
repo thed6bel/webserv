@@ -24,4 +24,4 @@ struct ServerConfig {
 void printServerConfig(const ServerConfig& config);
 bool parseConfigFile(const std::string& filename, std::vector<ServerConfig>& serverConfigs);
 
-#endif // PARSING_HPP
+#endif

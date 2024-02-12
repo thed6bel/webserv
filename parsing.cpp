@@ -8,6 +8,8 @@ struct LocationConfig {
     std::vector<std::string> allow_methods;
     std::string autoindex;
     std::string index;
+    std::string root_rep;
+    std::string ret;
 };
 
 struct ServerConfig {
@@ -41,8 +43,10 @@ void printServerConfig(const ServerConfig& config) {
         for (const auto& method : locConfig.allow_methods) {
             std::cout << method << " ";
         }
-        std::cout << "autoindex " << locConfig.autoindex << " ";
-        std::cout << "index " << (locConfig.index.empty() ? "Not defined" : locConfig.index) << std::endl;
+        std::cout << "autoindex " << (locConfig.autoindex.empty() ? "Not defined" : locConfig.autoindex) << " ";
+        std::cout << "index " << (locConfig.index.empty() ? "Not defined" : locConfig.index) << " ";
+        std::cout << "root " << (locConfig.root_rep.empty() ? "Not defined" : locConfig.root_rep) << " ";
+        std::cout << "return " << (locConfig.ret.empty() ? "Not defined" : locConfig.ret) << std::endl;
     }
 }
 
@@ -74,7 +78,7 @@ bool parseConfigFile(const std::string& filename, std::vector<ServerConfig>& ser
 
         if (key == "server") {
             // Nouvelle configuration de serveur détectée
-            serverConfigs.emplace_back();  // Ajouter une nouvelle configuration de serveur
+            serverConfigs.push_back(ServerConfig());
             globalIndexSet = false;  // Réinitialiser l'indicateur d'index global
             continue;
         } else if (serverConfigs.empty()) {
@@ -115,6 +119,10 @@ bool parseConfigFile(const std::string& filename, std::vector<ServerConfig>& ser
             iss >> currentServer.location[currentLocation].autoindex;
         } else if (key == "index" && !currentLocation.empty()) {
             iss >> currentServer.location[currentLocation].index;
+        } else if (key == "root" && !currentLocation.empty()) {
+            iss >> currentServer.location[currentLocation].root_rep;
+        } else if (key == "return" && !currentLocation.empty()) {
+            iss >> currentServer.location[currentLocation].ret;
         }
     }
 
