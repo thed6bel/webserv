@@ -111,6 +111,8 @@ bool parseConfigFile(const std::string& filename, std::vector<ServerConfig>& ser
             currentLocation = currentLocation.substr(0, currentLocation.find_last_not_of(" \t\n\r\f\v") + 1);
             currentLocation.erase(0, currentLocation.find_first_not_of(" \t\n\r\f\v"));
             continue;
+        } else if (key == "root" && !currentLocation.empty()) {
+            iss >> currentServer.location[currentLocation].root_rep;
         } else if (key == "allow_methods" && !currentLocation.empty()) {
             while (iss >> value) {
                 currentServer.location[currentLocation].allow_methods.push_back(value);
@@ -119,8 +121,6 @@ bool parseConfigFile(const std::string& filename, std::vector<ServerConfig>& ser
             iss >> currentServer.location[currentLocation].autoindex;
         } else if (key == "index" && !currentLocation.empty()) {
             iss >> currentServer.location[currentLocation].index;
-        } else if (key == "root" && !currentLocation.empty()) {
-            iss >> currentServer.location[currentLocation].root_rep;
         } else if (key == "return" && !currentLocation.empty()) {
             iss >> currentServer.location[currentLocation].ret;
         }

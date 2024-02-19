@@ -14,8 +14,9 @@
 
 #define PORT 80
 #define BUFFER_SIZE 2048
-#define MAX_CLIENTS 2
+#define MAX_CLIENTS 10
 #define RETRY_INTERVAL 10
+#define CGI_BIN_PATH "./cgi-bin/"
 
 std::string readFromFile(const std::string &filename)
 {
@@ -54,7 +55,34 @@ std::string getContentType(const std::string &filename)
         return "application/octet-stream";
 }
 
-int main(int argc, char *argv[]) {
+std::string executeCGI(const std::string &scriptPath, const std::string &queryString)
+{
+    std::stringstream ss;
+    ss << CGI_BIN_PATH << scriptPath << " \"" << queryString << "\"";
+    std::string command = ss.str();
+
+    FILE *pipe = popen(command.c_str(), "r");
+    if (!pipe)
+    {
+        return "Error executing CGI script.";
+    }
+
+    char buffer[128];
+    std::string result;
+    while (!feof(pipe))
+    {
+        if (fgets(buffer, 128, pipe) != NULL)
+        {
+            result += buffer;
+        }
+    }
+
+    pclose(pipe);
+    return result;
+}
+
+int main(int argc, char *argv[])
+{
     int server_fd, new_socket;
     struct sockaddr_in address;
     socklen_t addrlen = sizeof(address);
@@ -178,8 +206,24 @@ int main(int argc, char *argv[]) {
                 struct stat fileStat;
                 if (stat(filePath.c_str(), &fileStat) != 0)
                 {
-                    std::string notFoundResponse = "HTTP/1.1 404 Not Found\r\n\r\nFile not found!";
-                    send(sd, notFoundResponse.c_str(), notFoundResponse.size(), 0);
+                    // Vérifier si le fichier est un script CGI
+                    std::string scriptPath = filePath.substr(9); // Supprimer le préfixe "./cgi-bin/"
+                    std::string queryString;
+                    size_t queryPos = scriptPath.find("?");
+                    if (queryPos != std::string::npos)
+                    {
+                        queryString = scriptPath.substr(queryPos + 1);
+                        scriptPath = scriptPath.substr(0, queryPos);
+                    }
+
+                    // Exécuter le script CGI et renvoyer la sortie au client
+                    std::string cgiOutput = executeCGI(scriptPath, queryString);
+                    std::string contentType = "text/html"; // Type de contenu par défaut pour la sortie CGI
+                    std::string response = "HTTP/1.1 200 OK\r\nContent-Type: " + contentType + "\r\nContent-Length: " +
+                                           std::to_string(cgiOutput.size()) + "\r\n\r\n" + cgiOutput;
+
+                    // Envoi de la réponse au client
+                    send(sd, response.c_str(), response.size(), 0);
                     close(sd);
                     clients[i] = 0;
                     continue;

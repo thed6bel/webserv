@@ -53,6 +53,7 @@ server {
 	}
 
     location /script {
+		root /script_cgi;
         allow_methods GET POST DELETE;
         index time.py;
         cgi_path /usr/bin/python3 /bin/bash;
