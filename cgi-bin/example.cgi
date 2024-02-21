@@ -8,7 +8,8 @@ use CGI;
 my $cgi = CGI->new();
 
 # Récupère le paramètre 'name' de la requête
-my $name_param = $cgi->param('name') || 'Anonymous';
+my $name_param = $cgi->param('name') || 'Anonymous POWER';
 
 # Génère la réponse HTML
-print "<html><body><h1>Hello, $name_param!</h1></body></html>";
+#print "<html><body><h1>Hello, $name_param!</h1><a href="index.html"><button>Home Page</button></a></body></html>";
+print "<!DOCTYPE html><html><body><h1>Hello, $name_param!</h1><a href=\"/site/4/index.html\"><button>Home Page</button></a></body></html>";

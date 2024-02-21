@@ -29,5 +29,23 @@ You can use a script containing an infinite loop or an error; you are free to do
 
 fonctionne plus :
 // Si le chemin est vide, charge la page d'accueil (index.html, voir plus tard le php et autre...)
+//ne fonctionne pas car le site est setup dans plusieurs rep, l'indes n'est pas a la racine
                 if (requestedPath.empty() || requestedPath == "/")
                     requestedPath = "/index.html";
+
+
+
+
+faire le parsing sur le header recu 
+get OK GET /site/5/index.html HTTP/1.1
+POST KO POST /site/5/index.html HTTP/1.1
+delete KO DELETE /site/5/hello.jpeg undefined
+options KO OPTIONS /site/5/hello.jpeg HTTP/1.1
+
+en cas de methode delete il faut envoyer une reponse header CORS qui ressemble a ca :
+HTTP/1.1 200 OK
+Access-Control-Allow-Origin: *
+Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS
+Access-Control-Allow-Headers: Content-Type
+
+et les methode allowed sont setup dans le fichier de conf!

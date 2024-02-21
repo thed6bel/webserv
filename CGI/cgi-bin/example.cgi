@@ -11,4 +11,4 @@ my $cgi = CGI->new();
 my $name_param = $cgi->param('name') || 'Anonymous';
 
 # Génère la réponse HTML
-print "<html><body><h1>Hello, $name_param!</h1></body></html>";
+print "<html><body><h1>Hello, $name_param!</h1><a href="index.html"><button>Home Page</button></a></body></html>";

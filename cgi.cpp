@@ -55,83 +55,31 @@ std::string getContentType(const std::string &filename)
         return "application/octet-stream";
 }
 
-// std::string executeCGI(const std::string &scriptPath, const std::string &queryString)
-// {
-//     std::stringstream ss;
-//     ss << CGI_BIN_PATH << scriptPath << " \"" << queryString << "\"";
-//     std::string command = ss.str();
-
-//     FILE *pipe = popen(command.c_str(), "r");
-//     if (!pipe)
-//     {
-//         return "Error executing CGI script.";
-//     }
-
-//     char buffer[128];
-//     std::string result;
-//     while (!feof(pipe))
-//     {
-//         if (fgets(buffer, 128, pipe) != NULL)
-//         {
-//             result += buffer;
-//         }
-//     }
-
-//     pclose(pipe);
-//     return result;
-// }
-
 // Exécute un script CGI et renvoie la sortie
 std::string executeCGI(const std::string &scriptPath, const std::string &queryString)
 {
-    int pipefd[2];
-    if (pipe(pipefd) == -1)
+    std::stringstream ss;
+    ss << CGI_BIN_PATH << scriptPath << " \"" << queryString << "\"";
+    std::string command = ss.str();
+
+    FILE *pipe = popen(command.c_str(), "r");
+    if (!pipe)
     {
-        reportError("pipe failed");
-        std::exit(EXIT_FAILURE);
+        return "Error executing CGI script.";
     }
 
-    pid_t pid = fork();
-    if (pid == -1)
+    char buffer[128];
+    std::string result;
+    while (!feof(pipe))
     {
-        reportError("fork failed");
-        std::exit(EXIT_FAILURE);
-    }
-
-    if (pid == 0)
-    {
-        // Rediriger la sortie standard vers le tuyau
-        close(pipefd[0]);
-        dup2(pipefd[1], STDOUT_FILENO);
-        close(pipefd[1]);
-
-        // Exécuter le script CGI
-        setenv("QUERY_STRING", queryString.c_str(), 1);
-        execl(scriptPath.c_str(), scriptPath.c_str(), nullptr);
-        reportError("execl failed");
-        std::exit(EXIT_FAILURE);
-    }
-    else
-    {
-        // Fermer l'extrémité d'écriture du tuyau
-        close(pipefd[1]);
-
-        // Lire la sortie du script CGI
-        std::string cgiOutput;
-        char buffer[BUFFER_SIZE];
-        ssize_t bytesRead;
-        while ((bytesRead = read(pipefd[0], buffer, BUFFER_SIZE)) > 0)
+        if (fgets(buffer, 128, pipe) != NULL)
         {
-            cgiOutput.append(buffer, bytesRead);
+            result += buffer;
         }
-        close(pipefd[0]);
-
-        // Attendre la fin du processus enfant
-        int status;
-        waitpid(pid, &status, 0);
     }
 
-    return cgiOutput;
+    pclose(pipe);
+    return result;
 }
 
 int main(int argc, char *argv[])
@@ -240,7 +188,10 @@ int main(int argc, char *argv[])
 
                 buffer[bytesRead] = '\0';
                 std::cout << "Reçu : " << buffer << std::endl;
+                printf("Buffer pour controler : %s\n", buffer);
                 std::cout << "---------------------" << std::endl;
+
+                // faire le parsing ici des methodes et des chemins
 
                 // Extrait le chemin demandé à partir de la requête HTTP
                 std::string request(buffer);
@@ -255,7 +206,7 @@ int main(int argc, char *argv[])
                 // Chemin absolu du fichier demandé
                 std::string filePath = "." + requestedPath;
 
-                // Vérification de l'existence du fichier
+                // Vérification de l'existence du fichier et erreur 404 si le fichier n'existe pas + gestion des CGI
                 struct stat fileStat;
                 if (stat(filePath.c_str(), &fileStat) != 0)
                 {
@@ -268,7 +219,16 @@ int main(int argc, char *argv[])
                         queryString = scriptPath.substr(queryPos + 1);
                         scriptPath = scriptPath.substr(0, queryPos);
                     }
-
+                    // si queryString est vide, ce n'est pas un script CGI-GET et donc erreur 404
+                    if (scriptPath.find(".cgi") == std::string::npos || scriptPath.find(".cgi") != scriptPath.size() - 4)
+                    {
+                        std::string notFoundResponse = "HTTP/1.1 404 Not Found\r\n\r\nFile not found!";
+                        send(sd, notFoundResponse.c_str(), notFoundResponse.size(), 0);
+                        close(sd);
+                        clients[i] = 0;
+                        continue;
+                    }
+                    printf("Script CGI détecté : %s\n", scriptPath.c_str());
                     // Exécuter le script CGI et renvoyer la sortie au client
                     std::string cgiOutput = executeCGI(scriptPath, queryString);
                     std::string contentType = "text/html"; // Type de contenu par défaut pour la sortie CGI
