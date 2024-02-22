@@ -39,8 +39,8 @@ fonctionne plus :
 faire le parsing sur le header recu 
 get OK GET /site/5/index.html HTTP/1.1
 POST KO POST /site/5/index.html HTTP/1.1
-delete KO DELETE /site/5/hello.jpeg undefined
-options KO OPTIONS /site/5/hello.jpeg HTTP/1.1
+delete ok DELETE /site/5/hello.jpeg undefined
+options ok OPTIONS /site/5/hello.jpeg HTTP/1.1
 
 en cas de methode delete il faut envoyer une reponse header CORS qui ressemble a ca :
 HTTP/1.1 200 OK
@@ -49,3 +49,7 @@ Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS
 Access-Control-Allow-Headers: Content-Type
 
 et les methode allowed sont setup dans le fichier de conf!
+
+.PHP a gerer!!!!!!!
+devrait pouvoir télécharger des fichiers
+Votre serveur doit pouvoir écouter sur plusieurs ports

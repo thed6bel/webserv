@@ -18,6 +18,24 @@
 #define RETRY_INTERVAL 10
 #define CGI_BIN_PATH "./cgi-bin/"
 
+// Fonction pour le GET a mettre ici
+
+// Fonction pour le parsing de la méthode de la requête HTTP
+std::string parseMethod(const std::string& request) {
+    std::istringstream iss(request);
+    std::string method;
+    iss >> method;
+    return method;
+}
+// Fonction pour la lecture de la methode DELETE
+std::string parseMethodDelete(const std::string& request) {
+    std::string requ(request);
+    size_t start = requ.find("DELETE ") + 7;
+    size_t end = requ.find(" HTTP/");
+    std::string requestedPath = requ.substr(start, end - start);
+    return requestedPath;
+}
+
 std::string readFromFile(const std::string &filename)
 {
     std::ifstream file(filename.c_str());
@@ -188,87 +206,129 @@ int main(int argc, char *argv[])
 
                 buffer[bytesRead] = '\0';
                 std::cout << "Reçu : " << buffer << std::endl;
-                printf("Buffer pour controler : %s\n", buffer);
+                // printf("Buffer pour controler : %s\n", buffer);
                 std::cout << "---------------------" << std::endl;
 
                 // faire le parsing ici des methodes et des chemins
+                std::string method = parseMethod(buffer);
 
-                // Extrait le chemin demandé à partir de la requête HTTP
-                std::string request(buffer);
-                size_t start = request.find("GET ") + 4;
-                size_t end = request.find(" HTTP/");
-                std::string requestedPath = request.substr(start, end - start);
+                // Utilisation d'un switch pour gérer les différentes méthodes HTTP
+                if (method == "GET") {
+                    // Extrait le chemin demandé à partir de la requête HTTP
+                    std::string request(buffer);
+                    size_t start = request.find("GET ") + 4;
+                    size_t end = request.find(" HTTP/");
+                    std::string requestedPath = request.substr(start, end - start);
 
-                // Si le chemin est vide, charge la page d'accueil (index.html, voir plus tard le php et autre...)
-                if (requestedPath.empty() || requestedPath == "/")
-                    requestedPath = "/index.html";
+                    // Si le chemin est vide, charge la page d'accueil (index.html, voir plus tard le php et autre...)
+                    if (requestedPath.empty() || requestedPath == "/")
+                        requestedPath = "/index.html";
 
-                // Chemin absolu du fichier demandé
-                std::string filePath = "." + requestedPath;
+                    // Chemin absolu du fichier demandé
+                    std::string filePath = "." + requestedPath;
 
-                // Vérification de l'existence du fichier et erreur 404 si le fichier n'existe pas + gestion des CGI
-                struct stat fileStat;
-                if (stat(filePath.c_str(), &fileStat) != 0)
-                {
-                    // Vérifier si le fichier est un script CGI
-                    std::string scriptPath = filePath.substr(9); // Supprimer le préfixe "./cgi-bin/"
-                    std::string queryString;
-                    size_t queryPos = scriptPath.find("?");
-                    if (queryPos != std::string::npos)
+                    // Vérification de l'existence du fichier et erreur 404 si le fichier n'existe pas + gestion des CGI
+                    struct stat fileStat;
+                    if (stat(filePath.c_str(), &fileStat) != 0)
                     {
-                        queryString = scriptPath.substr(queryPos + 1);
-                        scriptPath = scriptPath.substr(0, queryPos);
-                    }
-                    // si queryString est vide, ce n'est pas un script CGI-GET et donc erreur 404
-                    if (scriptPath.find(".cgi") == std::string::npos || scriptPath.find(".cgi") != scriptPath.size() - 4)
-                    {
-                        std::string notFoundResponse = "HTTP/1.1 404 Not Found\r\n\r\nFile not found!";
-                        send(sd, notFoundResponse.c_str(), notFoundResponse.size(), 0);
+                        // Vérifier si le fichier est un script CGI
+                        std::string scriptPath = filePath.substr(9); // Supprimer le préfixe "./cgi-bin/"
+                        std::string queryString;
+                        size_t queryPos = scriptPath.find("?");
+                        if (queryPos != std::string::npos)
+                        {
+                            queryString = scriptPath.substr(queryPos + 1);
+                            scriptPath = scriptPath.substr(0, queryPos);
+                        }
+                        // si queryString est vide, ce n'est pas un script CGI-GET et donc erreur 404
+                        if (scriptPath.find(".cgi") == std::string::npos || scriptPath.find(".cgi") != scriptPath.size() - 4)
+                        {
+                            std::string notFoundResponse = "HTTP/1.1 404 Not Found\r\n\r\nFile not found!";
+                            send(sd, notFoundResponse.c_str(), notFoundResponse.size(), 0);
+                            close(sd);
+                            clients[i] = 0;
+                            continue;
+                        }
+                        printf("Script CGI détecté : %s\n", scriptPath.c_str());
+                        // Exécuter le script CGI et renvoyer la sortie au client
+                        std::string cgiOutput = executeCGI(scriptPath, queryString);
+                        std::string contentType = "text/html"; // Type de contenu par défaut pour la sortie CGI
+                        std::string response = "HTTP/1.1 200 OK\r\nContent-Type: " + contentType + "\r\nContent-Length: " +
+                                            std::to_string(cgiOutput.size()) + "\r\n\r\n" + cgiOutput;
+
+                        // Envoi de la réponse au client
+                        send(sd, response.c_str(), response.size(), 0);
                         close(sd);
                         clients[i] = 0;
                         continue;
                     }
-                    printf("Script CGI détecté : %s\n", scriptPath.c_str());
-                    // Exécuter le script CGI et renvoyer la sortie au client
-                    std::string cgiOutput = executeCGI(scriptPath, queryString);
-                    std::string contentType = "text/html"; // Type de contenu par défaut pour la sortie CGI
+
+                    // Lecture du contenu du fichier
+                    std::ifstream file(filePath.c_str(), std::ios::binary | std::ios::ate);
+                    if (!file.is_open())
+                    {
+                        std::string internalServerErrorResponse = "HTTP/1.1 500 Internal Server Error\r\n\r\nInternal Server Error!";
+                        send(sd, internalServerErrorResponse.c_str(), internalServerErrorResponse.size(), 0);
+                        close(sd);
+                        clients[i] = 0;
+                        continue;
+                    }
+
+                    std::streamsize fileSize = file.tellg();
+                    file.seekg(0, std::ios::beg);
+
+                    std::string fileContent(fileSize, 0);
+                    file.read(&fileContent[0], fileSize);
+                    file.close();
+
+                    // Construction de la réponse HTTP
+                    std::string contentType = getContentType(filePath);
                     std::string response = "HTTP/1.1 200 OK\r\nContent-Type: " + contentType + "\r\nContent-Length: " +
-                                           std::to_string(cgiOutput.size()) + "\r\n\r\n" + cgiOutput;
+                                        std::to_string(fileContent.size()) + "\r\n\r\n" + fileContent;
 
                     // Envoi de la réponse au client
                     send(sd, response.c_str(), response.size(), 0);
                     close(sd);
                     clients[i] = 0;
-                    continue;
-                }
+                } else if (method == "POST") {
+                    printf("POST request\n");
+                } else if (method == "DELETE") {
+                    printf("DELETE request\n");
+                    std::string parseDel = parseMethodDelete(buffer);
+                    std::string path = "." + parseDel;
+                    
+                    if ( std::remove(path.c_str()) == 0)
+                    {
+                        printf("File deleted successfully\n");
+                        std::string response = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: 0\r\n\r\n";
+                        send(sd, response.c_str(), response.size(), 0);
+                        close(sd);
+                        clients[i] = 0;
+                    } else {
+                        printf("Error deleting file\n");
+                        std::string response = "HTTP/1.1 404 Not Found\r\nContent-Type: text/html\r\nContent-Length: 0\r\n\r\n";
+                        send(sd, response.c_str(), response.size(), 0);
+                        close(sd);
+                        clients[i] = 0;}
+            
+                } else if (method == "OPTIONS") {
+                    // Construction de la réponse HTTP pour OPTIONS
+                    std::string optionsResponse = "HTTP/1.1 200 OK\r\n"
+                        "Access-Control-Allow-Origin: *\r\n"
+                        "Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS\r\n"
+                        "Access-Control-Allow-Headers: Content-Type\r\n"
+                        "\r\n";
 
-                // Lecture du contenu du fichier
-                std::ifstream file(filePath.c_str(), std::ios::binary | std::ios::ate);
-                if (!file.is_open())
-                {
-                    std::string internalServerErrorResponse = "HTTP/1.1 500 Internal Server Error\r\n\r\nInternal Server Error!";
-                    send(sd, internalServerErrorResponse.c_str(), internalServerErrorResponse.size(), 0);
+                    // Envoi de la réponse OPTIONS au client
+                    send(sd, optionsResponse.c_str(), optionsResponse.size(), 0);
                     close(sd);
                     clients[i] = 0;
-                    continue;
+
+                } else {
+                    std::cerr << "Unsupported HTTP method: " << method << std::endl;
                 }
 
-                std::streamsize fileSize = file.tellg();
-                file.seekg(0, std::ios::beg);
-
-                std::string fileContent(fileSize, 0);
-                file.read(&fileContent[0], fileSize);
-                file.close();
-
-                // Construction de la réponse HTTP
-                std::string contentType = getContentType(filePath);
-                std::string response = "HTTP/1.1 200 OK\r\nContent-Type: " + contentType + "\r\nContent-Length: " +
-                                       std::to_string(fileContent.size()) + "\r\n\r\n" + fileContent;
-
-                // Envoi de la réponse au client
-                send(sd, response.c_str(), response.size(), 0);
-                close(sd);
-                clients[i] = 0;
+                
             }
         }
     }
