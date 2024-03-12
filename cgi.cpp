@@ -22,6 +22,7 @@
 struct FileData {
     std::string filename;
     std::string content;
+    std::string path;
 };
 
 // Fonction pour extraire les données multipart/form-data
