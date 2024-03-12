@@ -19,6 +19,65 @@
 #define RETRY_INTERVAL 10
 #define CGI_BIN_PATH "./cgi-bin/"
 
+struct FileData {
+    std::string filename;
+    std::string content;
+};
+
+// Fonction pour extraire les données multipart/form-data
+std::vector<FileData> parseMultipartFormData(const std::string& formData) {
+    std::vector<FileData> files;
+
+    // Délimiteur pour séparer les sections multipart
+    std::string delimiter = "\r\n-----------------------------";
+
+    // Recherche de la première occurrence du délimiteur
+    size_t pos = formData.find(delimiter);
+    if (pos == std::string::npos) {
+        std::cerr << "Délimiteur de début de section introuvable" << std::endl;
+        return files;
+    }
+
+    // Tant qu'il y a des sections multipart
+    while (pos != std::string::npos) {
+        // Trouver la fin de la ligne contenant les informations sur le fichier
+        size_t filenameStart = formData.find("filename=\"", pos);
+        if (filenameStart == std::string::npos) {
+            break;
+        }
+        filenameStart += 10; // longueur de "filename=\""
+
+        // Trouver la fin du nom de fichier
+        size_t filenameEnd = formData.find("\"", filenameStart);
+        if (filenameEnd == std::string::npos) {
+            break;
+        }
+        std::string filename = formData.substr(filenameStart, filenameEnd - filenameStart);
+
+        // Trouver le début du contenu du fichier
+        size_t contentStart = formData.find("\r\n\r\n", filenameEnd);
+        if (contentStart == std::string::npos) {
+            break;
+        }
+        contentStart += 4; // longueur de "\r\n\r\n"
+
+        // Trouver la fin du contenu du fichier
+        size_t contentEnd = formData.find(delimiter, contentStart);
+        if (contentEnd == std::string::npos) {
+            break;
+        }
+        std::string content = formData.substr(contentStart, contentEnd - contentStart);
+
+        // Stocker les informations sur le fichier
+        files.push_back({filename, content});
+
+        // Trouver la prochaine occurrence du délimiteur
+        pos = formData.find(delimiter, contentEnd);
+    }
+
+    return files;
+}
+
 std::string parseScriptPath(std::string requestData) {
     std::string path;
     std::istringstream iss(requestData);
@@ -556,6 +615,15 @@ int main(int argc, char *argv[])
                             }
                         } else {
                             std::cout << "multipart/form-data" << std::endl;
+                            std::vector<FileData> files = parseMultipartFormData(requestData);
+                            std::ofstream output(file.filename, std::ios::binary);
+                            output << file.content;
+                            //a refaire!!
+                            std::string response = "HTTP/1.1 200 OK\r\nContent-Type: " + contentType + "\r\nContent-Length: " +
+                            std::to_string(cgiOutput.size()) + "\r\n\r\n" + cgiOutput;
+                            send(sd, response.c_str(), response.size(), 0);
+                            close(sd);
+                            clients[i] = 0;
                         }
                     }
 
