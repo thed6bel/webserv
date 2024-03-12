@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test CGI</title>
+</head>
+<body>
+    <h1>Test CGI avec méthode POST</h1>
+    <form action="/cgi-bin/script.cgi" method="post">
+        <label for="name">Nom:</label><br>
+        <input type="text" id="name" name="name"><br>
+        <label for="email">Email:</label><br>
+        <input type="email" id="email" name="email"><br><br>
+        <input type="submit" value="Envoyer">
+    </form>
+    <h1>Test CGI avec bouton</h1>
+    <form action="/cgi-bin/date_script.cgi" method="post">
+        <input type="submit" value="Afficher l'heure et la date">
+    </form>
+</body>
+</html>
