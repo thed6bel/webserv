@@ -341,12 +341,12 @@ int main(int argc, char *argv[])
     std::map<std::string, int> urlToPort;
 
     // Ajoutez chaque URL avec son port correspondant à la map
-    urlToPort["http://127.0.0.1/site/1/index.html"] = 8001;
+    urlToPort["http://127.0.0.1/site/1/index.html"] = 8001; // site perso avec images et css redirection...
     urlToPort["http://127.0.0.1/site/2/index.html"] = 8002;
-    urlToPort["http://127.0.0.1/site/3/index.html"] = 8003;
-    urlToPort["http://127.0.0.1/site/4/index.html"] = 8004;
-    urlToPort["http://127.0.0.1/site/5/index.html"] = 8005;
-    urlToPort["http://127.0.0.1/site/6/index.html"] = 8006;
+    urlToPort["http://127.0.0.1/site/3/index.html"] = 8003; // site avec JS 
+    urlToPort["http://127.0.0.1/site/4/index.html"] = 8004; // cgi en methode GET
+    urlToPort["http://127.0.0.1/site/5/index.html"] = 8005; // methode POST avec upload de fichier et suppression de fichier et formulaire
+    urlToPort["http://127.0.0.1/site/6/index.html"] = 8006; // CGI en methode POST avec formulaire et simple script pour afficher l'heure
 
     int server_fd, new_socket;
     struct sockaddr_in address;
