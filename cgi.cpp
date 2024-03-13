@@ -14,7 +14,7 @@
 #include <map>
 
 #define PORT 80
-#define BUFFER_SIZE 4096
+#define BUFFER_SIZE 1024
 #define MAX_CLIENTS 10
 #define RETRY_INTERVAL 10
 #define CGI_BIN_PATH "./cgi-bin/"
@@ -133,6 +133,7 @@ std::string parseFormData(const std::string&  buffer) {
     }
     return formData;
 }
+
 // convertir les données du formulaire et les stocker dans une structure de données MAP
 std::map<std::string, std::string> convertFormData(std::string form) {
     std::map<std::string, std::string> formData;
@@ -179,8 +180,6 @@ std::map<std::string, std::string> convertAscii(std::map<std::string, std::strin
     return formData;
 }
 
-// Fonction pour le GET a mettre ici
-
 // Fonction pour le parsing de la méthode de la requête HTTP
 std::string parseMethod(const std::string& request) {
     std::istringstream iss(request);
@@ -188,6 +187,7 @@ std::string parseMethod(const std::string& request) {
     iss >> method;
     return method;
 }
+
 // Fonction pour la lecture de la methode DELETE
 std::string parseMethodDelete(const std::string& request) {
     std::string requ(request);
@@ -234,7 +234,7 @@ std::string getContentType(const std::string &filename)
         return "application/octet-stream";
 }
 
-// Exécute un script CGI et renvoie la sortie
+// Exécute un script CGI et renvoie la sortie !!! pas bon fusionner avec la fonction executeCGI_POST pour avoir une seule fonction
 std::string executeCGI(const std::string &scriptPath, const std::string &queryString)
 {
     std::stringstream ss;
@@ -335,9 +335,6 @@ std::string executeCGI_POST(const std::string &scriptPath, const std::map<std::s
         return result;
     }
 }
-
-
-
 
 int main(int argc, char *argv[])
 {
