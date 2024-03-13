@@ -1,7 +1,5 @@
 #!/usr/bin/perl
 
-while (1) { }
-
 use strict;
 use warnings;
 

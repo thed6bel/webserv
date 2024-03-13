@@ -22,60 +22,47 @@
 struct FileData {
     std::string filename;
     std::string content;
-    std::string path;
 };
 
 // Fonction pour extraire les données multipart/form-data
 std::vector<FileData> parseMultipartFormData(const std::string& formData) {
     std::vector<FileData> files;
-
-    // Délimiteur pour séparer les sections multipart
     std::string delimiter = "\r\n-----------------------------";
 
-    // Recherche de la première occurrence du délimiteur
     size_t pos = formData.find(delimiter);
     if (pos == std::string::npos) {
-        std::cerr << "Délimiteur de début de section introuvable" << std::endl;
         return files;
     }
 
-    // Tant qu'il y a des sections multipart
     while (pos != std::string::npos) {
-        // Trouver la fin de la ligne contenant les informations sur le fichier
         size_t filenameStart = formData.find("filename=\"", pos);
         if (filenameStart == std::string::npos) {
             break;
         }
-        filenameStart += 10; // longueur de "filename=\""
+        filenameStart += 10;
 
-        // Trouver la fin du nom de fichier
         size_t filenameEnd = formData.find("\"", filenameStart);
         if (filenameEnd == std::string::npos) {
             break;
         }
         std::string filename = formData.substr(filenameStart, filenameEnd - filenameStart);
 
-        // Trouver le début du contenu du fichier
         size_t contentStart = formData.find("\r\n\r\n", filenameEnd);
-        if (contentStart == std::string::npos) {
+        if (contentStart == std::string::npos)
             break;
-        }
-        contentStart += 4; // longueur de "\r\n\r\n"
+        contentStart += 4;
 
-        // Trouver la fin du contenu du fichier
         size_t contentEnd = formData.find(delimiter, contentStart);
-        if (contentEnd == std::string::npos) {
+        if (contentEnd == std::string::npos)
             break;
-        }
         std::string content = formData.substr(contentStart, contentEnd - contentStart);
 
-        // Stocker les informations sur le fichier
-        files.push_back({filename, content});
-
-        // Trouver la prochaine occurrence du délimiteur
+        files.push_back(FileData());
+        files.back().filename = filename;
+        files.back().content = content;
+        
         pos = formData.find(delimiter, contentEnd);
     }
-
     return files;
 }
 
@@ -354,6 +341,16 @@ std::string executeCGI_POST(const std::string &scriptPath, const std::map<std::s
 
 int main(int argc, char *argv[])
 {
+    std::map<std::string, int> urlToPort;
+
+    // Ajoutez chaque URL avec son port correspondant à la map
+    urlToPort["http://127.0.0.1/site/1/index.html"] = 8001;
+    urlToPort["http://127.0.0.1/site/2/index.html"] = 8002;
+    urlToPort["http://127.0.0.1/site/3/index.html"] = 8003;
+    urlToPort["http://127.0.0.1/site/4/index.html"] = 8004;
+    urlToPort["http://127.0.0.1/site/5/index.html"] = 8005;
+    urlToPort["http://127.0.0.1/site/6/index.html"] = 8006;
+
     int server_fd, new_socket;
     struct sockaddr_in address;
     ssize_t bytesRead;
@@ -617,11 +614,12 @@ int main(int argc, char *argv[])
                         } else {
                             std::cout << "multipart/form-data" << std::endl;
                             std::vector<FileData> files = parseMultipartFormData(requestData);
-                            std::ofstream output(file.filename, std::ios::binary);
-                            output << file.content;
+                            
+                            std::ofstream output(files[0].filename.c_str(), std::ios::binary);
+                            output.write(files[0].content.c_str(), files[0].content.size());
+
                             //a refaire!!
-                            std::string response = "HTTP/1.1 200 OK\r\nContent-Type: " + contentType + "\r\nContent-Length: " +
-                            std::to_string(cgiOutput.size()) + "\r\n\r\n" + cgiOutput;
+                            std::string response = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\nContent-Length: 37\r\n\r\n <h1>your multipart OK </h1>";
                             send(sd, response.c_str(), response.size(), 0);
                             close(sd);
                             clients[i] = 0;
