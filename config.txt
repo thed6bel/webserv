@@ -72,3 +72,41 @@ server {
 		root /script_cgi;
 	}
 }
+
+server {
+    listen 8080 localhost;
+    server_name localhost;
+    root site/20/;
+    index index.html;
+    // or
+    index index.html home.html; 
+    // Setup des pages d’erreur par défaut.
+    error_page 404 error_pages/404.html;
+    // Limiter la taille du body des clients.
+    client_max_body_size 500;
+
+    location /site/20 { 
+        // Définir une liste de méthodes HTTP acceptées pour la route
+        allow_methods DELETE POST GET OPTIONS;
+        // Activer ou désactiver le listing des répertoires.
+        autoindex off;
+    }
+
+    location /home {
+        index home.html
+    }
+
+    location /red {
+        // Définir une redirection HTTP.
+		return /tours;
+        // or
+        return www.google.com 
+        // le serveur envoie une requette 308
+	}
+
+    // Définir un répertoire ou un fichier à partir duquel le fichier doit être recherché
+    ??
+
+    // Set un fichier par défaut comme réponse si la requête est un répertoire.
+    ??
+}
