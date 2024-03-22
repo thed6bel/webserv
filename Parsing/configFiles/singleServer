@@ -1,0 +1,7 @@
+server {
+    listen 8000;
+    server_name site_perso;
+    root site/1/;
+    index index.html;
+    error_page 404 error_pages/404.html;
+}
