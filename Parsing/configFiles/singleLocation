@@ -1,5 +1,0 @@
-location /site/2.1 {
-        allow_methods DELETE POST GET;
-        autoindex off;
-        index hello.html;
-    }
