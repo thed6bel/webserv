@@ -118,6 +118,7 @@ static int  badPath(char *value)
         while (value[i] != '\0' && value[i] != ' ')
             i++;
     }
+    return (0);
 }
 
 static int    setValue(LocationBlock *block, int key, char *value)
