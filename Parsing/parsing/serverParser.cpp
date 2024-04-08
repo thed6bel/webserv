@@ -40,24 +40,74 @@ void trimEnd(char *str)
     str[lastCharIndex + 1] = '\0';
 }
 
-static void    setValue(ServerBlock *block, int key, char *value)
+static int    badErrorPage(char *value)
+{
+    int i = 0;
+
+    if (value == NULL)
+        return (1);
+    while (value[i] != '\0' && (value[i] == ' ' || (value[i] >= '0' && value[i] <= '9')))
+        i++;
+    if (value[i] != '/')
+        return (1);
+    return (0);
+}
+
+static int  badPath(char *value)
+{
+    int i = 0;
+
+    if (value == NULL)
+        return (1);
+    while (value[i] != '\0' && value[i] == ' ')
+        i++;
+    while (value[i] != '\0')
+    {
+        while (value[i] == ' ')
+            i++;
+        if (value[i] != '/' && value[i] != '\0')
+            return (1);
+        while (value[i] != '\0' && value[i] != ' ')
+            i++;
+    }
+    return (0);
+}
+
+static int    setValue(ServerBlock *block, int key, char *value)
 {
     if (key == -1)
-        return ;
+        return 0;
     else if (key == 7)
         block->setListen(value);
     else if (key == 12)
         block->setServerName(value);
     else if (key == 5)
+    {
+        if (badPath(value) == 1)
+            return (-1);
         block->setRoot(value);
+    }
     else if (key == 6)
+    {
+        if (badPath(value) == 1)
+            return (-1);
         block->setIndex(value);
+    }
     else if (key == 11)
+    {
+        if (badErrorPage(value) == 1)
+            return (-1);
         block->setErrorPage(value);
+    }
     else if (key == 21)
         block->setMaxBodySize(atoi(value));
     else if (key == 13)
+    {
+        if (badPath(value) == 1)
+            return (-1);
         block->setUploadFiles(value);
+    }
+    return (1);
 }
 
 int validServerBlock(ServerBlock *block)
@@ -141,7 +191,13 @@ ServerBlock   *parseSingleServer(std::ifstream &file)
             while (*value != '\0' && std::isspace(*value))
                 value++;
             *(strchr(value, ';')) = '\0';
-            setValue(result, type, value);
+            if (setValue(result, type, value) == -1)
+            {
+                free(toFree);
+                delete result;
+                std::cout << "Error in configfile !" << std::endl;
+                return (NULL);
+            }
             free(toFree);
         }
     }

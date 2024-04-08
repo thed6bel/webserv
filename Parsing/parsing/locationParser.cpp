@@ -101,44 +101,60 @@ int allowMethods(char *value) //GET POST DELETE OPTIONS
     return (result);
 }
 
-static void    setValue(LocationBlock *block, int key, char *value)
+static int  badPath(char *value)
+{
+    int i = 0;
+
+    if (value == NULL)
+        return (1);
+    while (value[i] != '\0' && value[i] == ' ')
+        i++;
+    while (value[i] != '\0')
+    {
+        while (value[i] == ' ')
+            i++;
+        if (value[i] != '/' && value[i] != '\0')
+            return (1);
+        while (value[i] != '\0' && value[i] != ' ')
+            i++;
+    }
+}
+
+static int    setValue(LocationBlock *block, int key, char *value)
 {
     int resultMethods;
     
     if (key == -1)
-        return ;
+        return 0;
     else if (key == 14)
     {
         resultMethods = allowMethods(value);
         if (resultMethods == -1)
         {
             std::cout << "Error in location block allow_methods.." << std::endl;
-            exit(1);
+            return (-1);
         }
         block->setLimitExcept(resultMethods);
     }
     else if (key == 10)
         block->setAutoIndex(value);
     else if (key == 6)
+    {
+        if (badPath(value) == 1)
+            return (-1);
         block->setIndex(value);
+    }
     else if (key == 7)
         block->setReturnPage(value);
+    return (1);
 }
 
 int validLocationBlock(LocationBlock *block)
 {
     if (block == NULL)
         return (0);
-    if (block->getIndex() == NULL)
-    {
-        std::cout << "ERROR: Index directive not specified in configfile." << std::endl;
-        return (0);
-    }
     if (block->getAutoIndex() == NULL)
-    {
-        std::cout << "ERROR: Autoindex directive not specified in configfile." << std::endl;
-        return (0);
-    }
+        block->setAutoIndex(strdup("off"));
     return (1);
 }
 
@@ -196,7 +212,13 @@ LocationBlock   *parseSingleLocation(std::ifstream &file, char   *line)
             while (*value != '\0' && std::isspace(*value))
                 value++;
             *(strchr(value, ';')) = '\0';
-            setValue(result, type, value);
+            if (setValue(result, type, value) == -1)
+            {
+                free(toFree);
+                delete result;
+                std::cout << "Error in configfile !" << std::endl;
+                return (NULL);
+            }
             free(toFree);
         }
     }  
