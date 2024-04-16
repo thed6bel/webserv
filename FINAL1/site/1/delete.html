@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="fr">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Test GET Method</title>
+        <style>
+            body {
+                font-family: 'Arial', sans-serif;
+                padding-top: 50px;
+                margin: 0;
+                background-color: #f4f4f4;
+                text-align: center;
+            }
+    
+            .navbar {
+                position: fixed;
+                top: 0;
+                width: 100%;
+                background-color: #3498db;
+                color: white;
+                padding: 10px 0;
+                text-align: center;
+                border-bottom: 2px solid #2980b9;
+            }
+    
+            button, input[type="submit"] {
+                padding: 10px 20px;
+                font-size: 16px;
+                font-weight: bold;
+                color: #fff;
+                background-color: #2980b9;
+                border: none;
+                border-radius: 5px;
+                cursor: pointer;
+                transition: background-color 0.3s;
+            }
+    
+            button:hover, input[type="submit"]:hover {
+                background-color: #1a6a9b;
+            }
+    
+            form {
+                margin-top: 100px; /* Ajoute un espace au-dessus du formulaire */
+            }
+    
+            label, input {
+                margin-bottom: 10px;
+            }
+    
+            input[type="text"] {
+                padding: 5px;
+                margin-right: 10px; /* Espacement entre le champ de texte et le bouton */
+            }
+        </style>
+    </head>
+<body>
+    <div class="navbar">
+        <a href="index.html"><button>Home</button></a>
+        <a href="contact.html"><button>Contact</button></a>
+        <a href="get.html"><button>GET</button></a>
+        <a href="post.html"><button>POST</button></a>
+        <a href="delete.html"><button>DELETE & UPLOAD</button></a>
+        <a href="other.html"><button>Other Method</button></a>
+        <a href="redirect"><button>Redirect Page</button></a>
+    </div>
+
+    <h2>Test post image</h2>
+    <form action="/index.html" method="POST" enctype="multipart/form-data">
+        <input type="file" name="photo" accept="image/*">
+        <input type="submit" value="Envoyer">
+    </form>
+    <h2>Test DELETE</h2>
+    <form id="deleteForm">
+        <label for="filename">Nom du fichier à supprimer :</label>
+        <input type="text" id="filename" name="filename" required><br><br>
+        <input type="submit" value="Supprimer">
+        <span id="deleteMessage"></span> <!-- Message s'affichera ici -->
+    </form>
+
+    <script>
+        document.getElementById('deleteForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            var filename = document.getElementById('filename').value;
+            var url = filename; // Assurez-vous que cette URL est correcte pour l'API DELETE
+            
+            fetch(url, {
+                method: 'DELETE'
+            })
+            .then(response => {
+                var messageElement = document.getElementById('deleteMessage');
+                if (response.ok) {
+                    messageElement.textContent = 'Fichier supprimé avec succès.';
+                    messageElement.style.color = 'green';
+                } else if (response.status === 404) {
+                    messageElement.textContent = 'Erreur: Fichier non trouvé.';
+                    messageElement.style.color = 'red';
+                } else if (response.status === 403) {
+                    messageElement.textContent = 'Erreur: Accès refusé.';
+                    messageElement.style.color = 'red';
+                } else {
+                    messageElement.textContent = 'Erreur lors de la suppression du fichier avec le code d\'état: ' + response.status;
+                    messageElement.style.color = 'red';
+                }
+            })
+            .catch(error => {
+                console.error('Erreur:', error);
+                document.getElementById('deleteMessage').textContent = 'Erreur de réseau ou problème de connexion.';
+                document.getElementById('deleteMessage').style.color = 'red';
+            });
+        });
+    </script>
+    <h1>Liste des fichiers disponibles pour téléchargement</h1>
+    <iframe id="filesFrame" src="/files" style="width:50%; height:300px;"></iframe>
+
+    <!-- <script>
+        function refreshIframe() {
+            var iframe = document.getElementById('filesFrame');
+            iframe.src = iframe.src;
+        }
+        setInterval(refreshIframe, 200000);
+    </script> -->
+
+</body>
+</html>

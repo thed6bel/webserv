@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="fr">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Test GET Method</title>
+        <style>
+            body {
+                font-family: 'Arial', sans-serif;
+                padding-top: 50px;
+                margin: 0;
+                background-color: #f4f4f4;
+                text-align: center;
+            }
+    
+            .navbar {
+                position: fixed;
+                top: 0;
+                width: 100%;
+                background-color: #3498db;
+                color: white;
+                padding: 10px 0;
+                text-align: center;
+                border-bottom: 2px solid #2980b9;
+            }
+    
+            button, input[type="submit"] {
+                padding: 10px 20px;
+                font-size: 16px;
+                font-weight: bold;
+                color: #fff;
+                background-color: #2980b9;
+                border: none;
+                border-radius: 5px;
+                cursor: pointer;
+                transition: background-color 0.3s;
+            }
+    
+            button:hover, input[type="submit"]:hover {
+                background-color: #1a6a9b;
+            }
+    
+            form {
+                margin-top: 100px; /* Ajoute un espace au-dessus du formulaire */
+            }
+    
+            label, input {
+                margin-bottom: 10px;
+            }
+    
+            input[type="text"] {
+                padding: 5px;
+                margin-right: 10px; /* Espacement entre le champ de texte et le bouton */
+            }
+        </style>
+    </head>
+<body>
+    <div class="navbar">
+        <a href="index.html"><button>Home</button></a>
+        <a href="contact.html"><button>Contact</button></a>
+        <a href="get.html"><button>GET</button></a>
+        <a href="post.html"><button>POST</button></a>
+        <a href="delete.html"><button>DELETE & UPLOAD</button></a>
+        <a href="other.html"><button>Other Method</button></a>
+        <a href="redirect"><button>Redirect Page</button></a>
+    </div>
+
+    <h1>Simple CGI with GET method</h1>
+    <form method="GET" action="/NameScriptGET.pl">
+        <label for="name">Name:</label>
+        <input type="text" id="name" name="name">
+        <input type="submit" value="Submit">
+    </form>
+
+</body>
+</html>

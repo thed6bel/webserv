@@ -1,0 +1,19 @@
+server {
+    listen 8004;
+    server_name localhost;
+    root /site/3;
+    index /index.html;
+    error_page 404 /error_pages/404.html;
+
+    location /21 {
+        index loca.html;
+        allow_methods DELETE POST GET;
+        autoindex off;
+    }
+
+    location /Bob {
+        allow_methods DELETE POST GET OPTIONS;
+        autoindex off;
+        index hello.html;
+    }
+}

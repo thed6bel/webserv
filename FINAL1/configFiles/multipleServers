@@ -1,0 +1,89 @@
+
+server {
+    listen 8001;
+    server_name localhost.8006;
+    root /site/1;
+    index /index.html;
+    upload_files /files;
+    client_max_body_size 20971520;
+
+    location /files {
+        allow_methods GET OPTIONS DELETE POST;
+        autoindex on;
+        index /index.html;
+    }
+
+    location /redirect {
+        index /index.html;
+        allow_methods DELETE POST GET;
+        autoindex off;
+        return /index.html;
+    }
+    
+    location /dir {
+        index /index.html;
+        allow_methods DELETE POST GET;
+        autoindex on;
+    }
+
+}
+
+server {
+    listen 8002;
+    server_name sitehugo17.be;
+    root /site/2;
+    error_page 404 /error_pages/404.html;
+    index /index.html;
+    client_max_body_size 10;
+}
+
+server {
+    listen 8003;
+    server_name localhost.8004;
+    root /site/3;
+    index /index.html;
+    error_page 404 folder/404.html;
+    upload_files /fileUploaded;
+
+    location /22 {
+        index /loca.htm;
+        allow_methods DELETE POST GET;
+        autoindex off;
+    }
+
+    location / {
+        allow_methods DELETE POST GET OPTIONS;
+        autoindex on;
+        index /hello.html;
+    }
+}
+
+server {
+    listen 8004;
+    server_name localhost.8004;
+    root /site/4;
+    error_page 404 /error_pages/404.html;
+    index /index.html;
+}
+
+server {
+    listen 8005;
+    server_name localhost.8005;
+    root /site/5;
+    error_page 404 /error_pages/404.html;
+    index /index.html;
+    upload_files /fileUploaded;
+    client_max_body_size 20971520;
+
+    location / {
+        allow_methods GET;
+        autoindex on;
+        index /index.html;
+    }
+
+    location /fileUploaded {
+        allow_methods GET OPTIONS POST;
+        autoindex on;
+        index /index.html;
+    }
+}

@@ -1,0 +1,11 @@
+server {
+    listen 9000;
+    root /site/1/;
+    server_name hopla;
+    index /index.html;
+
+    location /dir {
+        allow_methods GET;
+        index /index.html;
+    }
+}

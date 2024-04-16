@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="fr">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Test GET Method</title>
+        <style>
+            body {
+                font-family: 'Arial', sans-serif;
+                padding-top: 50px;
+                margin: 0;
+                background-color: #f4f4f4;
+                text-align: center;
+            }
+    
+            .navbar {
+                position: fixed;
+                top: 0;
+                width: 100%;
+                background-color: #3498db;
+                color: white;
+                padding: 10px 0;
+                text-align: center;
+                border-bottom: 2px solid #2980b9;
+            }
+    
+            button, input[type="submit"] {
+                padding: 10px 20px;
+                font-size: 16px;
+                font-weight: bold;
+                color: #fff;
+                background-color: #2980b9;
+                border: none;
+                border-radius: 5px;
+                cursor: pointer;
+                transition: background-color 0.3s;
+            }
+    
+            button:hover, input[type="submit"]:hover {
+                background-color: #1a6a9b;
+            }
+    
+            form {
+                margin-top: 100px;
+            }
+    
+            label, input {
+                margin-bottom: 10px;
+            }
+    
+            input[type="text"] {
+                padding: 5px;
+                margin-right: 10px;
+            }
+            
+        </style>
+    </head>
+<body>
+    <div class="navbar">
+        <a href="index.html"><button>Home</button></a>
+        <a href="contact.html"><button>Contact</button></a>
+        <a href="get.html"><button>GET</button></a>
+        <a href="post.html"><button>POST</button></a>
+        <a href="delete.html"><button>DELETE & UPLOAD</button></a>
+        <a href="other.html"><button>Other Method</button></a>
+        <a href="redirect"><button>Redirect Page</button></a>
+    </div>
+    <div>
+        <h1>Test des autres méthodes HTTP</h1>
+        <p>Cliquez sur un bouton pour envoyer une requête à un serveur fictif.</p></div>
+
+    <button onclick="sendRequest('PUT')">Test PUT</button>
+    <button onclick="sendRequest('PATCH')">Test PATCH</button>
+    <button onclick="sendRequest('HEAD')">Test HEAD</button>
+
+    <div>
+        <h1> </h1> </div>
+
+    <div id="response">Les réponses du serveur apparaîtront ici.</div>
+
+    <script>
+        function sendRequest(method) {
+            fetch('/test', {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ data: 'test' })
+            })
+            .then(response => {
+                if (method === 'HEAD') {
+                    return Promise.resolve(`Status: ${response.status}`);
+                } else {
+                    return response.json();
+                }
+            })
+            .then(data => {
+                document.getElementById('response').textContent = `Réponse pour ${method}: ` + JSON.stringify(data);
+            })
+            .catch(error => {
+                document.getElementById('response').textContent = 'Erreur: ' + error;
+            });
+        }
+    </script>
+
+</body>
+</html>
