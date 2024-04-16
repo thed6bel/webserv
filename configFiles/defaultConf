@@ -6,7 +6,7 @@ server {
     error_page 504 /error_pages/504.html;
     index /index.html;
     upload_files /files;
-    client_max_body_size 10000000;
+    client_max_body_size 1000000000;
 
     location /files {
         allow_methods GET OPTIONS POST DELETE;
@@ -15,9 +15,6 @@ server {
     }
 
     location /redirect {
-        index /index.html;
-        allow_methods DELETE POST GET;
-        autoindex off;
         return /index.html;
     }
 

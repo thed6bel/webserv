@@ -14,7 +14,6 @@ std::string readRequestData(int client_socket, fd_set& master_fds, ServerBlock*&
             std::cerr << "Error reading from client socket" << std::endl;
             return "";
         } else if (bytes_read == 0) {
-            std::cout << "Connection closed by client." << std::endl;
             close(client_socket);
             FD_CLR(client_socket, &master_fds);
             return requestData;
@@ -413,7 +412,7 @@ void RequestHandler::handleRequest(int client_socket, fd_set& master_fds, std::m
             return;
         }
     }
-    
+
     std::string method = parseMethod(requestHeaders);
 
     if (method == "GET") {

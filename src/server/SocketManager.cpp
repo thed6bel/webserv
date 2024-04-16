@@ -87,10 +87,27 @@ void SocketManager::watch(std::map<int, ServerBlock*>& serverConfigs, std::map<i
                 // Handle writable sockets
                 if (client_responses.find(curr_fd) != client_responses.end()) {
                     std::string response = client_responses[curr_fd];
-                    send(curr_fd, response.c_str(), response.length(), 0);
-                    close(curr_fd);
-                    FD_CLR(curr_fd, &master_fds);
-                    client_responses.erase(curr_fd);
+                    ssize_t bytes_sent = send(curr_fd, response.c_str(), response.length(), 0);
+                    
+                    if (bytes_sent == -1) {
+                        // Erreur lors de l'envoi des données
+                        close(curr_fd);
+                        FD_CLR(curr_fd, &master_fds);
+                        client_responses.erase(curr_fd);
+                    } else if (bytes_sent == 0) {
+                        // La connexion a été fermée par le client
+                        close(curr_fd);
+                        FD_CLR(curr_fd, &master_fds);
+                        client_responses.erase(curr_fd);
+                    } else if (bytes_sent < static_cast<ssize_t>(response.length())) {
+                        // Seules certaines données ont été envoyées 
+                        client_responses[curr_fd] = response.substr(bytes_sent);
+                    } else {
+                        // Toutes les données ont été envoyées avec succès youpi
+                        close(curr_fd);
+                        FD_CLR(curr_fd, &master_fds);
+                        client_responses.erase(curr_fd);
+                    }
                 }
             }
 
