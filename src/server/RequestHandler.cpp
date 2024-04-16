@@ -53,16 +53,6 @@ void handleGetRequest(const std::string& requestHeaders, int client_socket, std:
     size_t end = requestHeaders.find(" HTTP/");
     std::string requestedPath = requestHeaders.substr(start, end - start);
 
-
-    // LocationBlock* locationBlock = findMatchingLocationBlock(requestedPath, serverConfigRequest);
-    // if (locationBlock != NULL) {
-    //     if (!(isMethodAllowed(locationBlock->getLimitExcept(), 2))) {
-    //         std::string response = RespondPage(403, "Forbidden", serverConfigRequest);
-    //         client_responses[client_socket] = response;
-    //         return;
-    //     }
-    // }
-
     LocationBlock* locationBlock = findMatchingLocationBlock(requestedPath, serverConfigRequest);
     if (locationBlock != NULL) {
         const char* returnPageCStr = locationBlock->getReturnPage();
@@ -99,6 +89,7 @@ void handleGetRequest(const std::string& requestHeaders, int client_socket, std:
             client_responses[client_socket] = response;
             return;
         }
+
         // Si le chemin est un répertoire, ajouter l'index SI existant
         if (serverConfigRequest->getRoot()) {
             std::string tmpPath = ".";
@@ -144,7 +135,7 @@ void handleGetRequest(const std::string& requestHeaders, int client_socket, std:
 
         if (!isPerlScript && !isPythonScript) {
             // Si ce n'est ni un script Perl ni Python, renvoyer une erreur 404
-            std::string response = RespondPage(404, "File not found !", serverConfigRequest);
+            std::string response = RespondPage(403, "Forbidden, Only Perl and Python script", serverConfigRequest);
             client_responses[client_socket] = response;
             return;
         }
@@ -210,7 +201,7 @@ void handlePostRequest(const std::string& requestData, const std::string& reques
     // Vérifier la méthode allow_methods
     LocationBlock* locationBlock = findMatchingLocationBlock(requestedPath, serverConfigRequest);
     if (locationBlock != NULL) {
-        if (!(isMethodAllowed(locationBlock->getLimitExcept(), 3))) { // 3 = POST
+        if (!(isMethodAllowed(locationBlock->getLimitExcept(), 3))) {
             std::string response = RespondPage(403, "Forbidden : Method not allowed", serverConfigRequest);
             client_responses[client_socket] = response;
             return;
@@ -272,7 +263,6 @@ void handlePostRequest(const std::string& requestData, const std::string& reques
                     std::string contentType = "text/html";
                     std::string response = "HTTP/1.1 200 OK\r\nContent-Type: " + contentType + "\r\nContent-Length: " +
                                 ss.str() + "\r\n\r\n" + cgiOutput;
-                    // std::string response = RespondPage(200, cgiOutput, serverConfigRequest);
                     client_responses[client_socket] = response;
                     return;
                 }
@@ -281,7 +271,7 @@ void handlePostRequest(const std::string& requestData, const std::string& reques
             std::vector<FileData> files = parseMultipartFormData(requestData);
             std::string baseFileName = files[0].filename;
             if (containsAccentsOrSpaces(baseFileName)) {
-                std::string response = RespondPage(400, "Mais putain retire tes accents, petit con c'est pas complique !", serverConfigRequest);
+                std::string response = RespondPage(403, "Mais putain retire tes accents et les espaces, petit con c'est pas complique !", serverConfigRequest);
                 client_responses[client_socket] = response;
                 return;
             }
@@ -310,11 +300,6 @@ void handlePostRequest(const std::string& requestData, const std::string& reques
                     baseFilePath.append(serverConfigRequest->getRoot());
                     baseFilePath.append(serverConfigRequest->getUploadFiles());
                     while (existingFile.good()) {
-                        // // filePath = baseFilePath + "_" + std::to_string(fileNumber);
-                        // filePath = baseFilePath + "/(copy_" + std::to_string(fileNumber) + ")" + baseFileName;
-                        // existingFile.close();
-                        // existingFile.open(filePath.c_str());
-                        // fileNumber++;
                         std::stringstream ss;
                         ss << "(copy_" << fileNumber << ")" << baseFileName;
                         filePath = baseFilePath + "/" + ss.str();
@@ -331,8 +316,7 @@ void handlePostRequest(const std::string& requestData, const std::string& reques
                 if (output.is_open()) {
                     output.write(files[0].content.c_str(), files[0].content.size());
                     output.close();
-                    // message pour le ok a modifier !
-                    std::string response = RespondPage(200, "Your multipart OK", serverConfigRequest);
+                    std::string response = RespondPage(200, "Your file is uploaded correctly", serverConfigRequest);
                     client_responses[client_socket] = response;
                     return;
                 } else {
@@ -341,7 +325,7 @@ void handlePostRequest(const std::string& requestData, const std::string& reques
             }
 
             // Si aucun répertoire d'upload n'est configuré ou si l'ouverture du fichier a échoué
-            std::string response = RespondPage(500, "Error : Failed to save uploaded", serverConfigRequest);
+            std::string response = RespondPage(500, "Error : Failed to save uploaded file", serverConfigRequest);
             client_responses[client_socket] = response;
             return;
         }
@@ -363,14 +347,12 @@ void handleDeleteRequest(const std::string& requestHeaders, int client_socket, s
     //verifier la methode autorisée
     LocationBlock* locationBlock = findMatchingLocationBlock(requestedPath, serverConfigRequest);
     if (locationBlock != NULL) {
-        if (!(isMethodAllowed(locationBlock->getLimitExcept(), 5))) { // 5 = delete
+        if (!(isMethodAllowed(locationBlock->getLimitExcept(), 5))) {
             std::string response = RespondPage(403, "Forbidden : Method not allowed", serverConfigRequest);
             client_responses[client_socket] = response;
             return;
         }
     }
-
-    std::cout << "---------------------------------------------path: " << path << std::endl;
 
     //suppression du fichier direct avec remove et erreur 404 si le fichier n'existe pas
     if ( std::remove(path.c_str()) == 0) {
@@ -378,7 +360,6 @@ void handleDeleteRequest(const std::string& requestHeaders, int client_socket, s
         client_responses[client_socket] = response;
         return;
     } else {
-        std::cout << "---------------------------------------------Error: Failed to delete file " << path << std::endl;
         std::string response = RespondPage(404, "File cannot be deleted because it does not exist", serverConfigRequest);
         client_responses[client_socket] = response;
         return;
@@ -387,7 +368,6 @@ void handleDeleteRequest(const std::string& requestHeaders, int client_socket, s
 
 void handleOptionsRequest(int client_socket, std::map<int, std::string>& client_responses, ServerBlock* serverConfigRequest) {
     // Construction de la réponse HTTP pour OPTIONS
-    std::cout << "---------------------------------------------OPTIONS" << std::endl;
     std::string requestedPath = serverConfigRequest->getUploadFiles();
 
     LocationBlock* locationBlock = findMatchingLocationBlock(requestedPath, serverConfigRequest);
