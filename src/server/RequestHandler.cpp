@@ -53,21 +53,17 @@ void handleGetRequest(const std::string& requestHeaders, int client_socket, std:
     size_t end = requestHeaders.find(" HTTP/");
     std::string requestedPath = requestHeaders.substr(start, end - start);
 
-    std::string reqTmpPath;
-    if (requestedPath == "/index.html" ){
-        reqTmpPath = "/";
-    }
-    LocationBlock* locationBlock = findMatchingLocationBlock(reqTmpPath, serverConfigRequest);
-    if (locationBlock != NULL) {
-        if (!(isMethodAllowed(locationBlock->getLimitExcept(), 2))) {
-            std::string response = RespondPage(403, "Forbidden", serverConfigRequest);
-            client_responses[client_socket] = response;
-            return;
-        }
-    }
 
+    // LocationBlock* locationBlock = findMatchingLocationBlock(requestedPath, serverConfigRequest);
+    // if (locationBlock != NULL) {
+    //     if (!(isMethodAllowed(locationBlock->getLimitExcept(), 2))) {
+    //         std::string response = RespondPage(403, "Forbidden", serverConfigRequest);
+    //         client_responses[client_socket] = response;
+    //         return;
+    //     }
+    // }
 
-    locationBlock = findMatchingLocationBlock(requestedPath, serverConfigRequest);
+    LocationBlock* locationBlock = findMatchingLocationBlock(requestedPath, serverConfigRequest);
     if (locationBlock != NULL) {
         const char* returnPageCStr = locationBlock->getReturnPage();
         if (returnPageCStr && std::strlen(returnPageCStr) > 0) {
@@ -109,7 +105,8 @@ void handleGetRequest(const std::string& requestHeaders, int client_socket, std:
             tmpPath.append(serverConfigRequest->getRoot());
             tmpPath.append(requestedPath);
             if (isDirectory(tmpPath)) {
-                requestedPath += locationBlock->getIndex();
+                if (locationBlock->getIndex() != NULL)
+                    requestedPath += locationBlock->getIndex();
             }
         }
     }

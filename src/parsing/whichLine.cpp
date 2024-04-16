@@ -1,4 +1,5 @@
 #include "header.hpp"
+#include <cstdlib>
 
 static int whatDirective(char *line)
 {

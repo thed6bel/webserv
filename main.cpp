@@ -11,7 +11,6 @@ int main(int argc, char* argv[]) {
     const char* configFile = argc > 1 ? argv[1] : "configFiles/defaultConf";
     ServerManager serverManager;
 
-    // signal(SIGINT, signalHandler);
     signal(SIGINT, sighandler);
 
     if (!serverManager.parseConfig(configFile)) {

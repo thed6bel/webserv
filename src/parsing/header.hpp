@@ -7,6 +7,8 @@
 #include <string>
 #include <cstring>
 #include <sys/stat.h>
+#include <cstdio>
+#include <cstdlib>
 #include "serverBlock/serverBlock.hpp"
 
 //------------------------Parsing Utils-------------------------------

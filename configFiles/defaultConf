@@ -22,17 +22,20 @@ server {
     }
 
     location /dir {
-        index /index.html;
         allow_methods DELETE POST GET;
         autoindex off;
     }
 
     location / {
-        index /index.html;
         allow_methods DELETE POST GET;
         autoindex off;
     }
 
+    location /contcat {
+        index /index.html;
+        allow_methods DELETE POST;
+        autoindex off;
+    }
 }
 
 server {

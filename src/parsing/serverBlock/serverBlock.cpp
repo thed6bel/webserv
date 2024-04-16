@@ -1,5 +1,6 @@
 #include "serverBlock.hpp"
 #include <cstring>
+#include <cstdio>
 
 // Constructor
 ServerBlock::ServerBlock() : listen(NULL), root(NULL), index(NULL), uploadFiles(NULL), errorPage(NULL), firstLocation(NULL), next(NULL)

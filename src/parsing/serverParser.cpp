@@ -1,4 +1,8 @@
 #include "header.hpp"
+#include <cstdlib>
+#include <cstring>
+#include <cctype>
+
 
 int countWords(const char* str)
 {
@@ -288,11 +292,11 @@ int    createUploadDirectory(ServerBlock *first)
                 if (mkdir(directoryPath + 1, S_IRWXU) != 0)
                 {
                     std::cout << "Failed to create directory: " << directoryPath << std::endl;
-                    free(temp);
+                    delete(temp);
                     return (-1);
                 }
             }
-            free(temp);
+            delete(temp);
         }
         iterator = iterator->next;
     }
