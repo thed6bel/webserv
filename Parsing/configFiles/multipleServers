@@ -1,10 +1,10 @@
 server {
     listen 8001;
-    server_name localhost;
+    server_name localhot;
     root /site/2/;
-    index /index.html /bob.html /pim.html;
+    index /index.html;
     error_page 404 /error_pages/404.html;
-    error_page 502 /Bob;
+    error_page 404 /Bob;
     error_page 123 /Pimsel;
     error_page 50112 /Babbou;
     upload_files /Bobmarley;
@@ -12,27 +12,26 @@ server {
 
 server {
     listen 8004;
-    server_name localhost;
+    server_name site_pero;
     root /site/43/;
     index /index.html;
     error_page 404 /folder/404.html;
 
-    location /site/2.1 {
-        index /loca.html;
+    location /site {
+        index /local.html;
         allow_methods DELETE POST GET;
         return 67****BOB;
     }
-
-    location  Bob {
+    
+    location  /Bob {
         allow_methods DELETE POST GET OPTIONS;
         autoindex on;
-        index /hello.html;
+        index /hellohtml;
     }
-
 }
 
 server {
-    listen 8000;
+    listen 65534;
     server_name site_perso;
     root /site/1/;
     error_page 404 /error_pages/404.html;

@@ -115,6 +115,8 @@ static int  badPath(char *value)
             i++;
         if (value[i] != '/' && value[i] != '\0')
             return (1);
+        else if (value[i] == '/' && value[i + 1] == '/')
+            return (1);
         while (value[i] != '\0' && value[i] != ' ')
             i++;
     }
@@ -138,7 +140,11 @@ static int    setValue(LocationBlock *block, int key, char *value)
         block->setLimitExcept(resultMethods);
     }
     else if (key == 10)
+    {
+        if (strcmp(value, "on") != 0 && strcmp(value, "off") != 0)
+            return (-1);
         block->setAutoIndex(value);
+    }
     else if (key == 6)
     {
         if (badPath(value) == 1)
@@ -180,6 +186,13 @@ LocationBlock   *parseSingleLocation(std::ifstream &file, char   *line)
     while (std::isspace(*URL))
         URL++;
     *(strchr(URL, ' ')) = '\0';
+    if (URL[0] == '/' && URL[1] == '/')
+    {
+        std::cout << "Doubleslash in location path !" << std::endl;
+        free(toFree);
+        delete result;
+        return (NULL);
+    }
     result->setURL(URL);
     free(toFree);
 

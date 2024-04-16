@@ -221,6 +221,84 @@ ServerBlock *lastServerBlock(ServerBlock *first)
     return (iterator);
 }
 
+int checkServerDuplicate(const char *serverName, ServerBlock *startBlock)
+{
+    ServerBlock *iterator = startBlock;
+
+    while (iterator != NULL)
+    {
+        if (strcmp(serverName, iterator->getServerName()) == 0 && strcmp(serverName, "localhost") != 0)
+            return (1);    
+        iterator = iterator->next;
+    }
+    return (0);
+}
+
+int checkListenDuplicate(const char *listenName, ServerBlock *startBlock)
+{
+    ServerBlock *iterator = startBlock;
+
+    while (iterator != NULL)
+    {
+        if (strcmp(listenName, iterator->getListen()) == 0)
+            return (1);
+        iterator = iterator->next;
+    }
+    return (0);
+}
+
+
+int checkDuplicateServerListen(ServerBlock *firstBlock)
+{
+    ServerBlock *iterator = firstBlock;
+
+    while (iterator != NULL && iterator->next != NULL)
+    {
+        if (checkServerDuplicate(iterator->getServerName(), iterator->next) == 1)
+        {
+            std::cout << "Duplicate servername in configfile !!!" << std::endl;
+            return (1);
+        }
+        if (checkListenDuplicate(iterator->getListen(), iterator->next) == 1)
+        {
+            std::cout << "Duplicate listen in configfile !!!" << std::endl;
+            return (1);
+        }
+        iterator = iterator->next;
+    }
+    return (0);
+}
+
+int    createUploadDirectory(ServerBlock *first)
+{
+    ServerBlock *iterator = first;
+    struct stat info;
+    const char *directoryPath;
+    char    *temp;
+
+    while (iterator != NULL)
+    {
+        if ((directoryPath = iterator->getUploadFiles()) != NULL)
+        {
+            temp = new char[strlen(directoryPath) + 2];
+            strcpy(temp, ".");
+            strcat(temp, directoryPath);
+            if (stat(temp, &info) != 0)
+            {
+                if (mkdir(directoryPath + 1, S_IRWXU) != 0)
+                {
+                    std::cout << "Failed to create directory: " << directoryPath << std::endl;
+                    free(temp);
+                    return (-1);
+                }
+            }
+            free(temp);
+        }
+        iterator = iterator->next;
+    }
+    return (1);
+}
+
 ServerBlock *parseConfigFile(std::string fileToParse)
 {   
     ServerBlock *completeBlock = NULL;
@@ -260,6 +338,16 @@ ServerBlock *parseConfigFile(std::string fileToParse)
             delete completeBlock;
             return (NULL);
         }
+    }
+    if (checkDuplicateServerListen(completeBlock) == 1)
+    {
+        delete completeBlock;
+        return (NULL);
+    }
+    if (createUploadDirectory(completeBlock) == -1)
+    {
+        delete completeBlock;
+        return (NULL);
     }
     file.close();
     return (completeBlock);

@@ -166,6 +166,9 @@ LocationBlock   *ServerBlock::lastLocation(void )
 
 const char* findNextWordAfterErrorCode(const char* bigString, int errorCode)
 {
+    if (bigString == NULL)
+        return (NULL);
+        
     char errorCodeStr[20];
     snprintf(errorCodeStr, sizeof(errorCodeStr), "%d", errorCode);
     size_t errorCodeLen = strlen(errorCodeStr);

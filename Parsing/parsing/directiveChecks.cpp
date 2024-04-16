@@ -5,7 +5,7 @@ int isAlphaNumeric(const char* str)
 {
     while (*str && *str != ' ')
     {
-        if (!std::isalnum(*str))
+        if (!std::isalnum(*str) && *str != '/')
             return (0);
         str++;
     }
@@ -43,6 +43,8 @@ int validListen(const char *listenValue)
 
 int checkAllPaths(const char *longPath)
 {
+    if (longPath == NULL)
+        return (1);
     while (*longPath)
     {
         if (validPath(longPath) == 1)

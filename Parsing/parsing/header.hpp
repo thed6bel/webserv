@@ -6,6 +6,7 @@
 #include <fstream>
 #include <string>
 #include <cstring>
+#include <sys/stat.h>
 #include "serverBlock/serverBlock.hpp"
 
 //------------------------Parsing Utils-------------------------------
