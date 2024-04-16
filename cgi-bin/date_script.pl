@@ -4,8 +4,8 @@ use strict;
 use warnings;
 
 # boucle infinie pour le test :
-while (1) {
-}
+# while (1) {
+# }
 
 # Obtenir la date et l'heure actuelles
 my $current_datetime = localtime;

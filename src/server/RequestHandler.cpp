@@ -413,10 +413,8 @@ void RequestHandler::handleRequest(int client_socket, fd_set& master_fds, std::m
             return;
         }
     }
-
-    std::istringstream iss(requestHeaders);
-    std::string method;
-    iss >> method;
+    
+    std::string method = parseMethod(requestHeaders);
 
     if (method == "GET") {
         handleGetRequest(requestHeaders, client_socket, client_responses, serverConfigRequest);

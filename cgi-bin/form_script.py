@@ -4,7 +4,7 @@ import cgi
 
 # En-tête pour indiquer que le contenu est HTML
 #print("Content-Type: text/html\n")
-while 1
+# while 1
 
 # Récupérer les données du formulaire
 form = cgi.FieldStorage()

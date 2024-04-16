@@ -48,12 +48,14 @@ void SocketManager::watch(std::map<int, ServerBlock*>& serverConfigs, std::map<i
         except_fds = master_fds;
 
         // Set timeout for select
-        timeout.tv_sec = 15;
+        timeout.tv_sec = 10;
         timeout.tv_usec = 0;
 
         // Wait for activity on any of the sockets
         activity = select(max_fd+1, &read_fds, &write_fds, &except_fds, &timeout);
-        if (!ServerManager::getIsRunning() || activity < 0) {
+        if (activity < 0) {
+            if (!ServerManager::getIsRunning())
+                break;
             std::cerr << "select error" << std::endl;
             break;
         }

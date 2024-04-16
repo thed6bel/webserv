@@ -485,6 +485,6 @@ void sighandler(int signum)
 {
 	if (signum == SIGINT) {
         ServerManager::isRunning = false;
-        std::cout << "\rShuting down.." << std::endl;
+        std::cout << "\rStart process to Shuting down.." << std::endl;
 	}
 }
