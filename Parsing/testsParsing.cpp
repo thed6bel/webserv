@@ -130,6 +130,7 @@ int main()
     result = parseConfigFile("configFiles/multipleServers");
     
     //Print results here.    
+    std::cout << "printing results." << std::endl;
     printServerList(result);
     delete result;
 }

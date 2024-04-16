@@ -6,7 +6,7 @@ ServerBlock::ServerBlock() : listen(NULL), root(NULL), index(NULL), uploadFiles(
 {
     serverName = new char[10];
     strcpy(serverName, "localhost");
-    this->maxBodySize = 1024;
+    this->maxBodySize = 2147483647;
 }
 
 // Destructor

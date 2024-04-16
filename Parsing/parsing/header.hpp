@@ -28,4 +28,9 @@ ServerBlock   *parseSingleServer(std::ifstream &file);
 ServerBlock *parseConfigFile(std::string fileToParse);
 //--------------------------------------------------------------------
 
+//---------------------Valid Directives-------------------------------
+int checkAllPaths(const char *value);
+int validListen(const char *listenValue);
+//--------------------------------------------------------------------
+
 #endif

@@ -1,7 +1,11 @@
 #include "locationBlock.hpp"
 #include <cstring>
 
-LocationBlock::LocationBlock() : URL(NULL), index(NULL), autoIndex(NULL), returnPage(NULL), limitExcept(1), next(NULL) {}
+LocationBlock::LocationBlock() : URL(NULL), index(NULL), returnPage(NULL), limitExcept(1), next(NULL) 
+{
+    autoIndex = new char[4];
+    strcpy(autoIndex, "off");
+}
 
 LocationBlock::~LocationBlock()
 {

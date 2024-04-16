@@ -64,7 +64,7 @@ int locationTypeOfLine(char *line)
     return (directiveType(line + i));
 }
 
-int allowMethods(char *value) //GET POST DELETE OPTIONS
+int allowMethods(char *value)
 {
     int result = 1;
     char    *iterator = value;
@@ -154,8 +154,8 @@ int validLocationBlock(LocationBlock *block)
 {
     if (block == NULL)
         return (0);
-    if (block->getAutoIndex() == NULL)
-        block->setAutoIndex(strdup("off"));
+    if (checkAllPaths(block->getURL()) == 0)
+        return (0);
     return (1);
 }
 
@@ -191,6 +191,7 @@ LocationBlock   *parseSingleLocation(std::ifstream &file, char   *line)
             if (validLocationBlock(result) == 0)
             {
                 delete result;
+                std::cout << "Error in locationblock, double check the configfile !" << std::endl;
                 return (NULL);
             }
             else

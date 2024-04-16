@@ -129,6 +129,11 @@ int validServerBlock(ServerBlock *block)
         std::cout << "ERROR: Index directive not specified in configfile." << std::endl;
         return (0);
     }
+    if (validListen(block->getListen()) == 0)
+    {
+        std::cout << "ERROR: Invalid listen in serverblock." << std::endl;
+        return (0);
+    }
     return (1);
 }
 
@@ -155,6 +160,7 @@ ServerBlock   *parseSingleServer(std::ifstream &file)
             if (validServerBlock(result) == 0)
             {
                 delete result;
+                std::cout << "Invalid Serverblock, check configfile !" << std::endl;
                 return (NULL);
             }
             else
