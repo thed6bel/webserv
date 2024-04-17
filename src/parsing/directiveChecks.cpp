@@ -6,8 +6,10 @@ int isAlphaNumeric(const char* str)
 {
     while (*str && *str != ' ')
     {
-        if (!std::isalnum(*str) && *str != '/')
+        if (!std::isalnum(*str) && *str != '/' && *str != '.')
             return (0);
+        else if (*str == '.' && strcmp(".html", str) == 0)
+            return (1);
         str++;
     }
     return (1);

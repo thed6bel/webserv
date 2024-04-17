@@ -284,14 +284,15 @@ int    createUploadDirectory(ServerBlock *first)
     {
         if ((directoryPath = iterator->getUploadFiles()) != NULL)
         {
-            temp = new char[strlen(directoryPath) + 2];
+            temp = new char[strlen(directoryPath) + strlen(iterator->getRoot()) + 2];
             strcpy(temp, ".");
+            strcat(temp, iterator->getRoot());
             strcat(temp, directoryPath);
             if (stat(temp, &info) != 0)
             {
                 if (mkdir(directoryPath + 1, S_IRWXU) != 0)
                 {
-                    std::cout << "Failed to create directory: " << directoryPath << std::endl;
+                    std::cout << "Error, your upload directory don't exist, create one" << directoryPath << std::endl;
                     delete(temp);
                     return (-1);
                 }

@@ -58,7 +58,7 @@ void handleGetRequest(const std::string& requestHeaders, int client_socket, std:
         if (returnPageCStr && std::strlen(returnPageCStr) > 0) {
             std::string returnPage(returnPageCStr);
             if (returnPage.find("http://") == 0 || returnPage.find("https://") == 0) {
-                std::string response = "HTTP/1.1 301 Moved Permanently\r\nLocation: " + returnPage + "\r\nContent-Length: 0\r\n\r\n";
+                std::string response = "HTTP/1.1 302 Found\r\nLocation: " + returnPage + "\r\nContent-Length: 0\r\n\r\n";
                 client_responses[client_socket] = response;
                 return;
             } else {

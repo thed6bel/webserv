@@ -146,7 +146,7 @@ void SocketManager::watch(std::map<int, ServerBlock*>& serverConfigs, std::map<i
         activity = select(max_fd + 1, &read_fds, &write_fds, &except_fds, &timeout);
 
         if (activity < 0) {
-            if (errno != EINTR) {
+            if (!isRunning) {
                 std::cerr << "select error" << std::endl;
                 break;
             }

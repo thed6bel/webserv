@@ -23,8 +23,8 @@ server {
         index /index.html;
     }
 
-    location / {
-        allow_methods DELETE POST GET;
+    location /contact.html {
+        allow_methods DELETE POST;
         autoindex off;
     }
 }
