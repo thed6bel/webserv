@@ -214,7 +214,6 @@ void SocketManager::watch(std::map<int, ServerBlock*>& serverConfigs, std::map<i
             FD_CLR(curr_fd, &master_fds);
         }
     }
-    exit(1);
 }
 
 int SocketManager::acceptConnection(int serverSocket) {

@@ -69,6 +69,5 @@ void ServerManager::run() {
     RequestHandler requestHandler;
     socketManager.watch(serverConfigs, listeningSockets, isRunning, master_fds, max_fd, requestHandler);
 
-
-    std::cout << "Server stopped" << std::endl;
+    exit(1);
 }
