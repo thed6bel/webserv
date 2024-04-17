@@ -82,7 +82,11 @@ static int    setValue(ServerBlock *block, int key, char *value)
     if (key == -1)
         return 0;
     else if (key == 7)
+    {
+        if (block->getListen() != NULL)
+            return (-1);
         block->setListen(value);
+    }
     else if (key == 12)
         block->setServerName(value);
     else if (key == 5)
@@ -203,9 +207,9 @@ ServerBlock   *parseSingleServer(std::ifstream &file)
             *(strchr(value, ';')) = '\0';
             if (setValue(result, type, value) == -1)
             {
+                std::cout << "Error in configfile " << value << " !" << std::endl;
                 free(toFree);
                 delete result;
-                std::cout << "Error in configfile !" << std::endl;
                 return (NULL);
             }
             free(toFree);

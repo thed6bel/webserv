@@ -24,8 +24,7 @@ server {
     }
 
     location /contact.html {
-        allow_methods DELETE POST;
-        autoindex off;
+        allow_methods DELETE POST GET;
     }
 }
 
