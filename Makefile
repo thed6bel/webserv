@@ -3,10 +3,10 @@
 #                                                         :::      ::::::::    #
 #    Makefile                                           :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: thed6bel <thed6bel@student.42.fr>          +#+  +:+       +#+         #
+#    By: hucorrei <hucorrei@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/07/31 13:35:34 by hucorrei          #+#    #+#              #
-#    Updated: 2024/04/14 17:27:49 by thed6bel         ###   ########.fr        #
+#    Updated: 2024/04/17 11:13:27 by hucorrei         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -16,7 +16,7 @@
 
 NAME		= webserv
 CC			= g++
-CFLAGS		= -Wall -Wextra -Werror -std=c++98 -g
+CFLAGS		= -Wall -Wextra -Werror -std=c++98
 OBJ_DIR		= .objs
 SRC_DIR		= src/
 RM			= rm -rf
